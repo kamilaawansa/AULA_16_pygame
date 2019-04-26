@@ -6,6 +6,7 @@ from os import path
 
 # Estabelece a pasta que contem as figuras.
 img_dir = path.join(path.dirname(__file__), 'img')
+snd_dir = path.join(path.dirname(__file__), 'snd')
 
 # Dados gerais do jogo.
 WIDTH = 480 # Largura da tela
@@ -58,7 +59,7 @@ class Player(pygame.sprite.Sprite):
             if self.rect.left < 0:
                 self.rect.left = 0 
                 
- #Classe Mob que carrega a imagem do meteoro
+#Classe Mob que carrega a imagem do meteoro
 class Mob(pygame.sprite.Sprite):
     def __init__(self):
         # Construtor da classe pai (Sprite).
@@ -76,7 +77,15 @@ class Mob(pygame.sprite.Sprite):
         # Detalhes sobre o posicionamento.
         self.rect = self.image.get_rect()  
          
-               
+         # Sorteia um lugar inicial em x
+        self.rect.x = random.randrange(0, WIDTH)
+        # Sorteia um lugar inicial em y
+        self.rect.y = random.randrange(-100, -40)
+        
+        # Seleciona velocidade aleatoria
+        self.speedx = random.randrange(-3,3)
+        self.speedy = random.randrange(2,9)
+        
 # Inicialização do Pygame.
 pygame.init()
 pygame.mixer.init()
@@ -94,12 +103,28 @@ clock = pygame.time.Clock()
 background = pygame.image.load(path.join(img_dir, 'starfield.png')).convert()
 background_rect = background.get_rect()
 
+# Carrega o som do jogo
+pygame.mixer.music.load(path.join(snd_dir, 'tgfcoder-FrozenJam-SeamlessLoop.ogg'))
+pygame.mixer.music.set_volume(0.4)
+boom_sound = pygame.mixer.Sound(path.join(snd_dir, 'expl3.wav'))
+destroy_sound = pygame.mixer.Sound(path.join(snd_dir, 'expl6.wav'))
+pew_sound = pygame.mixer.Sound(path.join(snd_dir, 'pew.wav'))
+
 # Cria uma nave. O construtor será chamado automaticamente.
 player = Player()
 
 #Cria um grupo de sprites e adiciona a nave.
 all_sprites = pygame.sprite.Group()
 all_sprites.add(player)
+
+# Cria um grupo só dos meteoros
+mobs = pygame.sprite.Group()
+
+# Cria 8 meteoros e adiciona no grupo meteoros
+for i in range(8):
+    m = Mob()
+    all_sprites.add(m)
+    mobs.add(m)
 
 # Comando para evitar travamentos.
 try:
@@ -110,7 +135,6 @@ try:
         
         # Ajusta a velocidade do jogo.
         clock.tick(FPS)
-        
         # Processa os eventos (mouse, teclado, botão, etc).
         for event in pygame.event.get():
             
